@@ -3,7 +3,7 @@ Read the origin README [here](https://github.com/AaronShea/BLUI)
 Ignore all the stuff found in the original repo, i'll try to keep simple information here. 
 
 ## What does it do
-BLUI "integrates" the [Chromium Embedded Framework (CEF)] (https://bitbucket.org/chromiumembedded/cef) into UE4.
+BLUI "integrates" the [Chromium Embedded Framework (CEF)](https://bitbucket.org/chromiumembedded/cef) into UE4.
 
 It allows you to build stuff in HTML and show them into your application as a texture, but also show webpages and interact with them. You probably want to build your UI with it.
 
@@ -12,7 +12,7 @@ Again, just ignore the old references and the old building script. The best thin
 The original idea is to compile a mini browser (based on CEF's test simple browser) that can interpreter the blu_event() javascript function, and when it gets called it triggers an event that we can catch with the help of libcef_dll_wrapper (that we are going to build) in our UE4 app.
 
 Just follows those steps:
-  1. Download a "Standard Distribution" from [here] (http://opensource.spotify.com/cefbuilds/index.html). It includes precompiled binaries and the sources files for our libcef_dll_wrapper and the simple browser. Makes sure it matches your UE4 app build, which will probably be 64-bit. Extract it somewhere.
+  1. Download a "Standard Distribution" from [here](http://opensource.spotify.com/cefbuilds/index.html). It includes precompiled binaries and the sources files for our libcef_dll_wrapper and the simple browser. Makes sure it matches your UE4 app build, which will probably be 64-bit. Extract it somewhere.
   2. Download cmake and install it.
   3. Clone the [browser repository](https://github.com/snaiperskaya96/BluBrowser.git) and extract the content of the BluBrowser folder into StandardCEFDistributionFolder/tests/cefsimple. Overwrite everything it asks you to overwrite.
   3. Navigate to where you unzipped the CEF distribution and run `cmake -G "Visual Studio 15 Win64" . -DUSE_SANDBOX=OFF` (Visual studio 15 is the alias for VS 2015 & 2017, adjust it accordingly with your VS version. See cmake docs) to generate the VS .sln files.
