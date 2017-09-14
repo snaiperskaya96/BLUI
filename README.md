@@ -1,51 +1,37 @@
-[![release](https://img.shields.io/github/release/AaronShea/BLUI.svg?style=flat-square)](https://github.com/AaronShea/BLUI/releases)
-![BLUI-logo](https://cloud.githubusercontent.com/assets/1334174/5969395/201a1202-a7f1-11e4-98a4-12bc6793f830.png)
+Read the origin README [here](https://github.com/AaronShea/BLUI) 
 
-## HTML powered UI and HUD for Unreal Engine 4
-(Hit up the wiki for a quick start guide!)
+Ignore all the stuff found in the original repo, i'll try to keep simple information here. 
 
-Do you use BLUI in your project? I'd really love it if you credit me and it! You can even use the [logo right here!](https://res.cloudinary.com/aaronshea/image/upload/v1423576170/BLUI-Transparent_eu582n.png)
+## What does it do
+BLUI "integrates" the [Chromium Embedded Framework (CEF)] (https://bitbucket.org/chromiumembedded/cef) into UE4.
 
-License: MIT
+It allows you to build stuff in HTML and show them into your application as a texture, but also show webpages and interact with them. You probably want to build your UI with it.
 
-What is it?
----------------------------------------
-BLUI is an Unreal Engine 4 plugin that allows easy interaction with the Chromium Embedded Framework. It provides a simple Material Instance and input functions to help streamline the rendering of rich HTML interfaces.
+## Building
+Again, just ignore the old references and the old building script. The best thing to do is to build the plugin starting from a precompiled CEF binary.
+The original idea is to compile a mini browser (based on CEF's test simple browser) that can interpreter the blu_event() javascript function, and when it gets called it triggers an event that we can catch with the help of libcef_dll_wrapper (that we are going to build) in our UE4 app.
 
-BLUI tries to stay out of the way as much as possible. All rendering of the DOM and processing of the JavaScript happens in a separate process, just like Chromium. BLUI only updates the texture inside the material instance when Chromium requests a redraw, not every tick, saving a bit more processing along the way.
+Just follows those steps:
+  1. Download a "Standard Distribution" from [here] (http://opensource.spotify.com/cefbuilds/index.html). It includes precompiled binaries and the sources files for our libcef_dll_wrapper and the simple browser. Makes sure it matches your UE4 app build, which will probably be 64-bit. Extract it somewhere.
+  2. Download cmake and install it.
+  3. Clone the [browser repository](https://github.com/snaiperskaya96/BluBrowser.git) and extract the content of the BluBrowser folder into StandardCEFDistributionFolder/tests/cefsimple. Overwrite everything it asks you to overwrite.
+  3. Navigate to where you unzipped the CEF distribution and run `cmake -G "Visual Studio 15 Win64" . -DUSE_SANDBOX=OFF` (Visual studio 15 is the alias for VS 2015 & 2017, adjust it accordingly with your VS version. See cmake docs) to generate the VS .sln files.
+  4. Build the libcef_dll_wrapper using `cmake --build . --target libcef_dll_wrapper --config Release`
+  5. Build the browser executable using `cmake --build . --target blu_ue4_process --config Release`
+  6. Now clone this repository to YourProject/Plugins and navigate to YourProjects/Plugins/BLUI/ThirdParty (should be empty)
+  7. Copy StandardCEFDistributionFolder/include to YourProjects/Plugins/BLUI/ThirdParty/include
+  8. Copy StandardCEFDistributionFolder/Release/cef_sandbox.lib and libcef.lib to YourProject/Plugins/BLUI/ThirdParty/lib
+  9. Copy StandardCEFDistributionFolder/libcef_dll_wrapper/Release/libcef_dll_wrapper.lib to YourProject/Plugins/BLUI/ThirdParty/lib
+  10. Copy StandardCEFDistributionFolder/tests/cefsimple/Release to YourProject/Plugins/BLUI/ThirdParty/shipping.
+  11. Regenerate your project VS files in the usual way.
+  12. Hopefully it should compile smoothly
+  
+## Usage
+Using the plugin is quite simple. At the end of the process you get a pointer to a Texture that show the current browser window. Apply it to whatever you want and you are golden. Below some steps to use BLUI with blueprint, same thing applies to C++, naming is very similar.
 
-Features
----------------------------------------
-+ Chromium Powered (same thing that powers Google Chrome!)
-+ Fully compatible with every web technology that Chrome/Chromium works with. (HTML5, WebAudio, WebSockets etc.)
-+ No specific ties to ***any*** in game class, simple use Blueprints (or C++) to create a new "BluEye" object and grab its material instance, then you can paint it on anything!
-+ Execute JavaScript in the "browser" from your game to pass data to the web page
-+ Using `blu_event` JS native function you can pass data from the page's JavaScript back into UE4!
-+ C++ or Blueprints, works with both!
-
-Setting up the editor and project
----------------------------------------
-Then copy the `BLUI` folder into the "Plugins" folder within your **project** directory, and enable the plugin.
-
-Re-generate your project's Visual Studio file and load up the editor. Then check the plugin list to ensure it has been loaded!
-
-Updating the CEF event loop
----------------------------------------
-~~You must call the `BluManager::doBluMessageLoop();` method every tick in order for the CEF process to update properly. To do this, override the default GameMode's Tick function and include the `Blu/Public/BluManager.h` header file. You can then call the appropriate method.~~
-
-As of now, you no longer need to do this. You can simply call a blueprint node to Tick the CEF loop every tick of the level blueprint.
-
-
-Loading Local Files
----------------------------------------
-Set your default URL or use the "Load URL" node/method to load a URL that starts with `blui://` this will point to the directory root of the project or the game (if packaged). So if you wanted to load an HTML file from `YourProject/UI/file.html`, set the URL to `blui://UI/file.html`
-
-
-HUD Example Blueprint
----------------------------------------
-Within the release, you'll find an ExampleHUD blueprint file, place this into your project's blueprints directory to try it out! (It's a simple UMG widget pre-configures to accept keyboard and mouse input, with a BluEye instance hooked up to a canvas)
-
-
-Shipping Your Game (Linux)
----------------------------------------
-Copy all contents of the Linux shipping files into your packaged game's `GameName/Binaries/{Linux}`, these are the required files for the Chromium process.
+  1. Create a Material, create a TextureSampleParameter2D, set the Parameter Name to something and link it to the base color.
+  2. From a blueprint (probably your umg) graph right click somewhere and look for the `Create Blueye` node.
+  3. From the BluEye node get the `Set Properties` node and set it up as you prefer, you surely want to store the BluEye reference somewhere (see the output var from Set Properties). Put the TextureSampleParameter2D name in the Texture Parameter Name field.
+  4. Drag the Init node from your BluEye object
+  5. Now you can get the texture from the BluEye object using the "Get Texture" node and use it as you would
+  6. Finally you have to trigger BluEye tick somewhere. I'd put it in the game level tick event, drag a node from it and search for `Run BLUI Tick`.
