@@ -12,17 +12,21 @@ Again, just ignore the old references and the old building script. The best thin
 The original idea is to compile a mini browser (based on CEF's test simple browser) that can interpreter the blu_event() javascript function, and when it gets called it triggers an event that we can catch with the help of libcef_dll_wrapper (that we are going to build) in our UE4 app.
 
 Just follows those steps:
-  1. Download a "Standard Distribution" from [here] (http://opensource.spotify.com/cefbuilds/index.html). It includes precompiled binaries and the sources files for our libcef_dll_wrapper and the simple browser. Makes sure it matches your UE4 app build, which will probably be 64-bit. Extract it somewhere.
+  1. Download a "Standard Distribution" from [here] (http://opensource.spotify.com/cefbuilds/cef_binary_3.2924.1575.g97389a9_windows64.tar.bz2) (better stick with the 3.2924 release). It includes precompiled binaries and the sources files for our libcef_dll_wrapper and the simple browser. Extract it somewhere.
   2. Download cmake and install it.
   3. Clone the [browser repository](https://github.com/snaiperskaya96/BluBrowser.git) and extract the content of the BluBrowser folder into StandardCEFDistributionFolder/tests/cefsimple. Overwrite everything it asks you to overwrite.
   3. Navigate to where you unzipped the CEF distribution and run `cmake -G "Visual Studio 15 Win64" . -DUSE_SANDBOX=OFF` (Visual studio 15 is the alias for VS 2015 & 2017, adjust it accordingly with your VS version. See cmake docs) to generate the VS .sln files.
-  4. Build the libcef_dll_wrapper using `cmake --build . --target libcef_dll_wrapper --config Release`
-  5. Build the browser executable using `cmake --build . --target blu_ue4_process --config Release`
-  6. Now clone this repository to YourProject/Plugins and navigate to YourProjects/Plugins/BLUI/ThirdParty (should be empty)
-  7. Copy StandardCEFDistributionFolder/include to YourProjects/Plugins/BLUI/ThirdParty/include
-  8. Copy StandardCEFDistributionFolder/Release/cef_sandbox.lib and libcef.lib to YourProject/Plugins/BLUI/ThirdParty/lib
-  9. Copy StandardCEFDistributionFolder/libcef_dll_wrapper/Release/libcef_dll_wrapper.lib to YourProject/Plugins/BLUI/ThirdParty/lib
-  10. Copy StandardCEFDistributionFolder/tests/cefsimple/Release to YourProject/Plugins/BLUI/ThirdParty/shipping.
+  4. Two steps:
+    - Open libcef_dll_wrapper/libcef_dll_wrapper.vcxproj with a text editor, replace `<RuntimeLibrary>MultiThreaded</RuntimeLibrary>` with `<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>` and save
+    - Build the libcef_dll_wrapper using `cmake --build . --target libcef_dll_wrapper --config Release`
+  5. Two steps again:
+    - Open tests/cefsimple/blu_ue4_process.vcxproj with a text editor, replace `<RuntimeLibrary>MultiThreaded</RuntimeLibrary>` with `<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>` and save
+    - Build the browser executable using `cmake --build . --target blu_ue4_process --config Release`
+  6. Now clone this repository to YourProject/Plugins and navigate to YourProjects/Plugins/BLUI/ThirdParty/cef/Win (Create it if it doesn't exist)
+  7. Copy StandardCEFDistributionFolder/include to YourProjects/Plugins/BLUI/ThirdParty/cef/Win/include
+  8. Copy StandardCEFDistributionFolder/Release/cef_sandbox.lib and libcef.lib to YourProject/Plugins/BLUI/ThirdParty/cef/Win/lib
+  9. Copy StandardCEFDistributionFolder/libcef_dll_wrapper/Release/libcef_dll_wrapper.lib to YourProject/Plugins/BLUI/ThirdParty/cef/Win/lib
+  10. Copy StandardCEFDistributionFolder/tests/cefsimple/Release to YourProject/Plugins/BLUI/ThirdParty/cef/Win/shipping.
   11. Regenerate your project VS files in the usual way.
   12. Hopefully it should compile smoothly
   
